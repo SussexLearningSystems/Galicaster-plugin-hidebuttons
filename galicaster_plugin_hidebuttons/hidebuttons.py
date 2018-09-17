@@ -1,16 +1,16 @@
+"""
+Plugin to hide buttons from the non-admin UI
+"""
+
 from galicaster.core import context
 
-
 ALL_BUTTONS = {
-    "record": "recbutton",
+    "help": "helpbutton",
     "pause": "pausebutton",
+    "record": "recbutton",
     "stop": "stopbutton",
-    "help": "helpbutton"
+    "swap": "swapbutton"
 }
-"""
-The edit and swap buttons aren't included as part of this plugin, `swap` can be
-configured within [basic] and `edit` is an admin-only option.
-"""
 
 dispatcher = context.get_dispatcher()
 conf = context.get_conf()
@@ -20,17 +20,15 @@ def init():
     """
     Plugin initialization
     """
-    
     dispatcher.connect("init", post_init)
 
 
-def post_init(source=None):
+def post_init(_source):
     """
     Plugin initialized
     """
     recorder_ui = context.get_mainwindow().nbox.get_nth_page(0).gui
 
-    # Customize buttons in the recorder UI
     try:
         if conf.get_boolean('basic', 'admin'):
             logger.info("Admin mode is set to true")
@@ -45,6 +43,8 @@ def post_init(source=None):
             for button_to_hide in buttons_to_hide:
                 button = recorder_ui.get_object(ALL_BUTTONS[button_to_hide])
                 if button:
+                    if not button.get_realized():
+                        logger.warn("Hiding button `{}` though it is already hidden...".format(button_to_hide))
                     button.hide()
     except Exception:
         # The conf parameter isn't defined. Ignore
